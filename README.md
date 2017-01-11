@@ -1,0 +1,106 @@
+# Map-example-with-Openlayer
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <link rel="stylesheet" href="http://openlayers.org/en/master/css/ol.css" type="text/css">
+    <style type="text/css">
+    body {
+      width: 960px;
+      height: 500px;
+      position: relative;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    div.fill {
+      width: 100%;
+      height: 100%;
+    }
+    </style>
+    <script src="http://maps.google.com/maps/api/js?v=3&amp;sensor=false"></script>
+    <title>Example</title>
+  </head>
+  <body>
+    <div id="map" class="map">
+      <div id="gmap" class="fill"></div>
+      <div id="olmap" class="fill"></div>
+    </div>
+    <script src="http://openlayers.org/en/master/build/ol.js" type="text/javascript"></script>
+    <script type="text/javascript">
+    var gmap = new google.maps.Map(document.getElementById('gmap'), {
+      disableDefaultUI: true,
+      keyboardShortcuts: false,
+      draggable: false,
+      disableDoubleClickZoom: true,
+      scrollwheel: false,
+      streetViewControl: false
+    });
+
+    var view = new ol.View({
+      // make sure the view doesn't go beyond the 22 zoom levels of Google Maps
+      maxZoom: 21
+    });
+    view.on('change:center', function() {
+      var center = ol.proj.transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
+      gmap.setCenter(new google.maps.LatLng(center[1], center[0]));
+    });
+    view.on('change:resolution', function() {
+      gmap.setZoom(view.getZoom());
+    });
+
+    var point = new ol.geom.Point([79.86124,6.9270]);
+    point.transform('EPSG:4326', 'EPSG:3857');
+
+	var pFeature = new ol.Feature({
+		geometry: point,
+		draggable: false
+	});
+
+	var pStyle = new ol.style.Style({
+			image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+			anchor: [0.5, 46],
+			anchorXUnits: 'fraction',
+			anchorYUnits: 'pixels',
+			opacity: 0.75,
+			src: 'http://openlayers.org/en/v3.0.0/examples/data/icon.png'
+		}))
+	});
+
+	pFeature.setStyle(pStyle);
+
+    console.log(pFeature);
+
+    var vector = new ol.source.Vector({
+			features: [pFeature],
+			isFixed: true
+		});
+
+	var vectorLayer = new ol.layer.Vector({
+		source: vector
+	});
+
+	console.log(vector);
+
+    var olMapDiv = document.getElementById('olmap');
+
+	var map = new ol.Map({
+		//interactions: ol.interaction.defaults().extend([select,modify]),
+		layers: [vectorLayer],
+		target: olMapDiv,
+		view: view
+	});
+
+    view.setCenter([6.9270,79.86124]);
+    view.setZoom(2);
+
+    olMapDiv.parentNode.removeChild(olMapDiv);
+    gmap.controls[google.maps.ControlPosition.TOP_LEFT].push(olMapDiv);
+
+    </script>
+  </body>
+</html>
